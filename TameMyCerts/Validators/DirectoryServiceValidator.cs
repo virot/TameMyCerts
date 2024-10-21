@@ -213,12 +213,12 @@ namespace TameMyCerts.Validators
             if (dsMapping.SupplementServicePrincipalNames)
             {
                 foreach (var identity in from spn in dsObject.ServicePrincipalNames
-                         let prefixes = new List<string> { "host", "termsrv", "http", "wsman" }
-                         let index = spn.IndexOf("/", Comparison)
-                         where prefixes.Contains(spn.Substring(0, index), StringComparer.InvariantCultureIgnoreCase)
-                         select spn.Substring(index + 1)
+                                         let prefixes = new List<string> { "host", "termsrv", "http", "wsman" }
+                                         let index = spn.IndexOf("/", Comparison)
+                                         where prefixes.Contains(spn.Substring(0, index), StringComparer.InvariantCultureIgnoreCase)
+                                         select spn.Substring(index + 1)
                          into identity
-                         select identity)
+                                         select identity)
                 {
                     if (policy.SupplementUnqualifiedNames ||
                         (!policy.SupplementUnqualifiedNames && identity.Contains(".")))
@@ -251,6 +251,32 @@ namespace TameMyCerts.Validators
 
             #endregion
 
+            #region Maximum password age
+            if (dsMapping.MaximumPasswordAge > 0)
+            {
+                if (!(dsObject.Attributes.ContainsKey("pwdlastset")))
+                {
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+                        LocalizedStrings.DirVal_Account_Password_failed_to_parse, dsMapping.MaximumPasswordAge));
+                }
+                try
+                {
+                    long.TryParse(dsObject.Attributes["pwdlastSet"], out long pwdLastSetLong);
+                    UInt32 PasswordAge = (UInt32)DateTime.UtcNow.Subtract(DateTime.FromFileTimeUtc(pwdLastSetLong)).TotalMinutes;
+                    Console.WriteLine($"Password age: {PasswordAge}");
+                    if (dsMapping.MaximumPasswordAge < PasswordAge)
+                    {
+                        result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+                        LocalizedStrings.DirVal_Account_Password_to_old, dsMapping.MaximumPasswordAge));
+                    }
+                }
+                catch
+                {
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+    LocalizedStrings.DirVal_Account_Password_failed_to_parse, dsMapping.MaximumPasswordAge));
+                }
+            }
+            #endregion
             return result;
         }
     }
