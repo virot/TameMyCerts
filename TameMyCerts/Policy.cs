@@ -167,7 +167,7 @@ namespace TameMyCerts
 
                 result = _crValidator.VerifyRequest(result, policy, dbRow, template);
 
-                result = _dsValidator.GetMappedActiveDirectoryObject(result, policy, dbRow, template, out var dsObject, _logger);
+                result = _dsValidator.GetMappedActiveDirectoryObject(result, policy, dbRow, template, out var dsObject);
 
                 result = _dsValidator.VerifyRequest(result, policy, dsObject);
                 result = _ccValidator.VerifyRequest(result, policy, dbRow, dsObject, _caConfig);
