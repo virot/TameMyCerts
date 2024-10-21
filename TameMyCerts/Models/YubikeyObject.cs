@@ -39,7 +39,7 @@ namespace TameMyCerts.Models
         public YubikeyObject()
         {
         }
-        public YubikeyObject(string publicKey, X509Certificate2 AttestationCertificate, X509Certificate2 IntermediateCertificate)
+        public YubikeyObject(byte[] publicKey, X509Certificate2 AttestationCertificate, X509Certificate2 IntermediateCertificate)
         {
 
             
@@ -64,10 +64,8 @@ namespace TameMyCerts.Models
             {
                 throw new Exception("Certificate path does not end up at Yubikey CA");
             }
-            if (publicKey != Convert.ToBase64String(chain.ChainElements[0].Certificate.PublicKey.EncodedKeyValue.RawData))
+            if (! (publicKey.SequenceEqual(chain.ChainElements[0].Certificate.PublicKey.EncodedKeyValue.RawData)))
             {
-                Console.WriteLine($"CSR public key: {publicKey}");
-                Console.WriteLine($"att public key: {Convert.ToBase64String(chain.ChainElements[0].Certificate.PublicKey.EncodedKeyValue.RawData)}");
                 throw new Exception("Certificate CSR does not match attestion certificate");
             }
 
@@ -157,10 +155,22 @@ namespace TameMyCerts.Models
             #endregion
             #region Firmware Version
             // Update the Firmware Version
-            byte[] FirmwareVersion = AttestationCertificate.Extensions.Cast<X509Extension>().FirstOrDefault(x => x.Oid.Value == "1.3.6.1.4.1.41482.3.3")?.RawData;
+            byte[] FirmwareVersion = AttestationCertificate.Extensions.Cast<X509Extension>().FirstOrDefault(x => x.Oid.Value == YubikeyOID.FIRMWARE)?.RawData;
             if (FirmwareVersion.Length == 3)
             {
                 this.FirmwareVersion = new Version(FirmwareVersion[0], FirmwareVersion[1], FirmwareVersion[2]);
+            }
+            #endregion
+            #region Serial Number
+            // Update the Serial Number
+            byte[] SerialNumber = AttestationCertificate.Extensions.Cast<X509Extension>().FirstOrDefault(x => x.Oid.Value == YubikeyOID.SERIALNUMBER)?.RawData;
+            if (! (SerialNumber is null))
+            {
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(SerialNumber);
+                }
+                this.SerialNumber = BitConverter.ToUInt32(SerialNumber, 0).ToString();
             }
             #endregion
 
@@ -170,6 +180,7 @@ namespace TameMyCerts.Models
             Attributes.Add("PinPolicy", this.PinPolicy);
             Attributes.Add("TouchPolicy", this.TouchPolicy);
             Attributes.Add("Slot", this.Slot);
+            Attributes.Add("SerialNumber", this.SerialNumber);
         }
 
         private bool VerifyChain(X509Certificate2 Signed, X509Certificate2 Signer)
@@ -198,6 +209,7 @@ namespace TameMyCerts.Models
         public string PinPolicy { get; } = "";
         public string FormFactor { get; } = "";
         public string Slot { get; } = "";
+        public string SerialNumber { get; } = "";
         public Version FirmwareVersion { get; } = new Version(0, 0, 0);
         public bool? Validated { get; } = false;
         private static string attestionSlotPattern = @"CN=YubiKey PIV Attestation (?<slot>[0-9A-Fa-f]{2})";
