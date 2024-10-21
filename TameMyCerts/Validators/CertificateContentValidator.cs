@@ -40,7 +40,7 @@ namespace TameMyCerts.Validators
 
                 if (!list.Any(x => x.Key.Equals(token, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    throw new Exception(string.Format(LocalizedStrings.Token_invalid, token));
+                    throw new Exception(string.Format(LocalizedStrings.Token_invalid, identifier, token));
                 }
             }
 
@@ -50,9 +50,18 @@ namespace TameMyCerts.Validators
             return output;
         }
 
+        // Use for all old config that only has dsObject and not YubikeyObject
         public CertificateRequestValidationResult VerifyRequest(CertificateRequestValidationResult result,
             CertificateRequestPolicy policy, CertificateDatabaseRow dbRow, ActiveDirectoryObject dsObject,
             CertificateAuthorityConfiguration caConfig)
+        {
+            YubikeyObject YubikeyObject = new YubikeyObject();
+            return VerifyRequest(result, policy, dbRow, dsObject, caConfig, YubikeyObject);
+        }
+
+            public CertificateRequestValidationResult VerifyRequest(CertificateRequestValidationResult result,
+            CertificateRequestPolicy policy, CertificateDatabaseRow dbRow, ActiveDirectoryObject dsObject,
+            CertificateAuthorityConfiguration caConfig, YubikeyObject yubikeyObject)
         {
             if (result.DeniedForIssuance)
             {
@@ -123,6 +132,8 @@ namespace TameMyCerts.Validators
 
                     value = ReplaceTokenValues(value, "ad",
                         null != dsObject ? dsObject.Attributes.ToList() : new List<KeyValuePair<string, string>>());
+                    value = ReplaceTokenValues(value, "yk",
+                        null != yubikeyObject ? yubikeyObject.Attributes.ToList() : new List<KeyValuePair<string, string>>());
                     value = ReplaceTokenValues(value, "sdn",
                         policy.ReadSubjectFromRequest
                             ? dbRow.InlineSubjectRelativeDistinguishedNames

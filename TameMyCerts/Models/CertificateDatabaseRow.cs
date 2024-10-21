@@ -18,6 +18,7 @@ namespace TameMyCerts.Models
             NotBefore = serverPolicy.GetDateCertificatePropertyOrDefault("NotBefore");
             NotAfter = serverPolicy.GetDateCertificatePropertyOrDefault("NotAfter");
             KeyLength = serverPolicy.GetLongCertificatePropertyOrDefault("PublicKeyLength");
+            PublicKey = serverPolicy.GetStringCertificatePropertyOrDefault("PublicKey");
             RawRequest = serverPolicy.GetBinaryRequestPropertyOrDefault("RawRequest");
             RequestType = serverPolicy.GetLongRequestPropertyOrDefault("RequestType") ^ CertCli.CR_IN_FULLRESPONSE;
             Upn = serverPolicy.GetStringCertificatePropertyOrDefault("UPN") ?? string.Empty;
@@ -52,6 +53,7 @@ namespace TameMyCerts.Models
                     ? new List<KeyValuePair<string, string>>()
                     : GetDnComponents(DistinguishedName);
                 SubjectAlternativeNameExtension = GetSubjectAlternativeNameExtension();
+                PublicKey = certificateRequestPkcs10.PublicKey.EncodedKey.ReplaceCaseInsensitive("\n","").ReplaceCaseInsensitive("\r", "").ReplaceCaseInsensitive(" ", "");
                 RawRequest = Convert.FromBase64String(certificateRequestPkcs10.get_RawData());
                 RequestType = CertCli.CR_IN_PKCS10;
             }
@@ -138,6 +140,12 @@ namespace TameMyCerts.Models
         ///     Inline request attributes (like process name). These are read on-demand from the inline certificate request. There
         ///     are rare cases in which it is not possible to parse the inline request. The property returns an empty collection in
         ///     this case.
+        /// </summary>
+        public string PublicKey { get; }
+
+        /// <summary>
+        ///     This is a base64 encoded string of the public key. It is extracted from the certificate request and can be used to
+        ///     validate the yubikey attestation.
         /// </summary>
         public Dictionary<string, string> InlineRequestAttributes
         {
