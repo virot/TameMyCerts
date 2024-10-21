@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Security.Principal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TameMyCerts.Enums;
@@ -13,15 +14,14 @@ namespace TameMyCerts.Tests
     public class YubikeyValidatorTests
     {
         private readonly CertificateDatabaseRow _dbRow;
-        private readonly ActiveDirectoryObject _dsObject;
-        private readonly ActiveDirectoryObject _dsObject2;
         private readonly CertificateRequestPolicy _policy;
-        private readonly YubikeyValidator _validator = new YubikeyValidator();
+        private readonly YubikeyValidator _YKvalidator = new YubikeyValidator();
+        private readonly CertificateContentValidator _CCvalidator = new CertificateContentValidator();
+        private readonly CertificateAuthorityConfiguration _caConfig;
 
         public YubikeyValidatorTests()
         {
-            // 2048 Bit RSA Key
-            // CN=intranet.adcslabor.de
+            // Sample CSR from a Yubikey with attestion included
             var request =
                 "-----BEGIN CERTIFICATE REQUEST-----\n" +
 "MIIItzCCB58CAQAwDzENMAsGA1UEAwwEdGFkYTCCASIwDQYJKoZIhvcNAQEBBQAD\n" +
@@ -75,7 +75,7 @@ namespace TameMyCerts.Tests
 
 
              _policy = new CertificateRequestPolicy {
-                 YubikeyRequirement = new YubikeyRequirement
+                 YubikeyPolicy = new YubikeyPolicy
                  {
                             AllowedPinPolicies = new List<string>
                                     { "Always" }
@@ -93,16 +93,225 @@ namespace TameMyCerts.Tests
         }
 
         [TestMethod]
-        public void Extract_Yubikey_Attestion()
+        public void Extract_Genuine_Yubikey_Attestion()
         {
             var result = new CertificateRequestValidationResult(_dbRow);
-            result = _validator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+            result = _YKvalidator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+
+            Assert.IsTrue(yubikey.TouchPolicy == "Never");
+            Assert.IsTrue(yubikey.PinPolicy == "Once");
+            Assert.IsTrue(yubikey.FirmwareVersion.ToString() == "5.4.3");
+            Assert.IsTrue(yubikey.FormFactor == "UsbAKeychain");
+            Assert.IsTrue(yubikey.Slot == "9a");
+            PrintResult(result);
+
+        }
+
+        [TestMethod]
+        public void Validate_Policy_Firmware_Disallow_5_4_3()
+        {
+            var result = new CertificateRequestValidationResult(_dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+            
+            CertificateRequestPolicy policy = new CertificateRequestPolicy
+            {
+                YubikeyPolicy = new YubikeyPolicy
+                {
+                    DisallowedFirmwareVersion = new List<string>
+                                    { "5.4.3" }
+                }
+            };
+
+            result = _YKvalidator.VerifyRequest(result, policy, yubikey);
+
+            PrintResult(result);
+
+            Assert.IsTrue(result.DeniedForIssuance);
+        }
+        [TestMethod]
+        public void Validate_Policy_Firmware_Allowed_5_7_1()
+        {
+            var result = new CertificateRequestValidationResult(_dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+
+            CertificateRequestPolicy policy = new CertificateRequestPolicy
+            {
+                YubikeyPolicy = new YubikeyPolicy
+                {
+                    AllowedFirmwareVersion = new List<string>
+                                    { "5.7.1" }
+                }
+            };
+
+            result = _YKvalidator.VerifyRequest(result, policy, yubikey);
+
+            PrintResult(result);
+
+            Assert.IsTrue(result.DeniedForIssuance);
+        }
+        [TestMethod]
+        public void Validate_PIN_Policy_Disallowed_Once_correct()
+        {
+            var result = new CertificateRequestValidationResult(_dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+
+            CertificateRequestPolicy policy = new CertificateRequestPolicy
+            {
+                YubikeyPolicy = new YubikeyPolicy
+                {
+                    DisallowedPinPolicies = new List<string>
+                                    { "Once" }
+                }
+            };
+
+            result = _YKvalidator.VerifyRequest(result, policy, yubikey);
+
+            PrintResult(result);
+
+            Assert.IsTrue(result.DeniedForIssuance);
+        }
+        [TestMethod]
+        public void Validate_PIN_Policy_Allowed_Never_incorrect()
+        {
+            var result = new CertificateRequestValidationResult(_dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+
+            CertificateRequestPolicy policy = new CertificateRequestPolicy
+            {
+                YubikeyPolicy = new YubikeyPolicy
+                {
+                    AllowedPinPolicies = new List<string>
+                                    { "Never" }
+                }
+            };
+
+            result = _YKvalidator.VerifyRequest(result, policy, yubikey);
+
+            PrintResult(result);
+
+            Assert.IsTrue(result.DeniedForIssuance);
+        }
+
+        [TestMethod]
+        public void Validate_PIN_Policy_Allowed_Once_correct()
+        {
+            var result = new CertificateRequestValidationResult(_dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+
+            CertificateRequestPolicy policy = new CertificateRequestPolicy
+            {
+                YubikeyPolicy = new YubikeyPolicy
+                {
+                    AllowedPinPolicies = new List<string>
+                                    { "Once" }
+                }
+            };
+
+            result = _YKvalidator.VerifyRequest(result, policy, yubikey);
 
             PrintResult(result);
 
             Assert.IsFalse(result.DeniedForIssuance);
-            //Assert.IsTrue(result.StatusCode.Equals(WinError.NTE_FAIL));
+        }
+        [TestMethod]
+        public void Validate_Touch_Policy_Disallowed_Never_correct()
+        {
+            var result = new CertificateRequestValidationResult(_dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+
+            CertificateRequestPolicy policy = new CertificateRequestPolicy
+            {
+                YubikeyPolicy = new YubikeyPolicy
+                {
+                    DisallowedTouchPolicies = new List<string>
+                                    { "Never" }
+                }
+            };
+
+            result = _YKvalidator.VerifyRequest(result, policy, yubikey);
+
+            PrintResult(result);
+
+            Assert.IsTrue(result.DeniedForIssuance);
+        }
+        [TestMethod]
+        public void Validate_Touch_Policy_Allowed_Always_incorrect()
+        {
+            var result = new CertificateRequestValidationResult(_dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+
+            CertificateRequestPolicy policy = new CertificateRequestPolicy
+            {
+                YubikeyPolicy = new YubikeyPolicy
+                {
+                    AllowedTouchPolicies = new List<string>
+                                    { "Always" }
+                }
+            };
+
+            result = _YKvalidator.VerifyRequest(result, policy, yubikey);
+
+            PrintResult(result);
+
+            Assert.IsTrue(result.DeniedForIssuance);
         }
 
+        [TestMethod]
+        public void Validate_Touch_Policy_Allowed_Never_correct()
+        {
+            var result = new CertificateRequestValidationResult(_dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+
+            CertificateRequestPolicy policy = new CertificateRequestPolicy
+            {
+                YubikeyPolicy = new YubikeyPolicy
+                {
+                    AllowedTouchPolicies = new List<string>
+                                    { "Never" }
+                }
+            };
+
+            result = _YKvalidator.VerifyRequest(result, policy, yubikey);
+
+            PrintResult(result);
+
+            Assert.IsFalse(result.DeniedForIssuance);
+        }
+
+
+        [TestMethod]
+        public void Rewrite_Subject_to_slot()
+        {
+            var result = new CertificateRequestValidationResult(_dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, _dbRow, out var yubikey);
+
+            CertificateRequestPolicy policy = new CertificateRequestPolicy
+            {
+                YubikeyPolicy = new YubikeyPolicy
+                {
+                },
+                OutboundSubject = new List<OutboundSubjectRule>
+                {
+                    new OutboundSubjectRule
+                    {
+                        Field = RdnTypes.CommonName,
+                        Value = "{yk:slot}",
+                        Mandatory = true,
+                        Force = true
+                    }
+                }
+            };
+
+            result = _YKvalidator.VerifyRequest(result, policy, yubikey);
+            result = _CCvalidator.VerifyRequest(result, policy, _dbRow, null, _caConfig, yubikey);
+
+            PrintResult(result);
+
+            Assert.IsFalse(result.DeniedForIssuance);
+            Assert.IsTrue(result.CertificateProperties
+    .Where(x => x.Key.Equals(RdnTypes.NameProperty[RdnTypes.CommonName]))
+    .Any(x => x.Value.Equals("9a"))
+);
+        }
     }
 }

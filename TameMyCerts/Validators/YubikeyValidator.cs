@@ -14,9 +14,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using TameMyCerts.ClassExtensions;
 using TameMyCerts.Enums;
 using TameMyCerts.Models;
@@ -29,69 +31,108 @@ namespace TameMyCerts.Validators
     /// </summary>
     internal class YubikeyValidator
     {
+        private const StringComparison Comparison = StringComparison.InvariantCultureIgnoreCase;
         private CertificateRequest _CertificateRequest;
- 
+
         public CertificateRequestValidationResult VerifyRequest(CertificateRequestValidationResult result,
             CertificateRequestPolicy policy, YubikeyObject yubikey)
         {
-
-            if (result.DeniedForIssuance)
+            if (result.DeniedForIssuance || null == policy.YubikeyPolicy)
             {
                 return result;
             }
-            try
+
+
+            #region PIN Policy
+            if (policy.YubikeyPolicy.DisallowedPinPolicies.Any())
             {
-                //_CertificateRequest.
-                //_CertificateRequest. .LoadSigningRequest(certificateRequest)
+                foreach (var PinPolicy in policy.YubikeyPolicy.DisallowedPinPolicies.Where(s => s.Equals(yubikey.PinPolicy, Comparison)))
+                {
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+                    LocalizedStrings.YKVal_Disallowed_PIN_Policy, yubikey.PinPolicy));
+                }
             }
-            catch (Exception ex)
+            if (policy.YubikeyPolicy.AllowedPinPolicies.Any())
             {
-                result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, ex.Message);
+                if (!(policy.YubikeyPolicy.AllowedPinPolicies.Contains(yubikey.PinPolicy)))
+                {
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+                    LocalizedStrings.YKVal_Allowed_PIN_Policy, yubikey.PinPolicy));
+                }
             }
+            #endregion
+
+            #region Touch Policy
+            if (policy.YubikeyPolicy.DisallowedTouchPolicies.Any())
+            {
+                foreach (var TouchPolicy in policy.YubikeyPolicy.DisallowedTouchPolicies.Where(s => s.Equals(yubikey.TouchPolicy, Comparison)))
+                {
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+                    LocalizedStrings.YKVal_Disallowed_Touch_Policy, yubikey.TouchPolicy));
+                }
+            }
+            if (policy.YubikeyPolicy.AllowedTouchPolicies.Any())
+            {
+                if (!(policy.YubikeyPolicy.AllowedTouchPolicies.Contains(yubikey.TouchPolicy)))
+                {
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+                    LocalizedStrings.YKVal_Allowed_Touch_Policy, yubikey.TouchPolicy));
+                }
+            }
+            #endregion
+
+            #region Firmware Version
+            // Check if the firmware version is allowed
+            if (policy.YubikeyPolicy.DisallowedFirmwareVersion.Any())
+            {
+                foreach (var FirmwareVersion in policy.YubikeyPolicy.DisallowedFirmwareVersion.Where(s => s.Equals(yubikey.FirmwareVersion.ToString(), Comparison)))
+                {
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+                    LocalizedStrings.YKVal_Disallowed_Firmware_Version, yubikey.FirmwareVersion.ToString()));
+                }
+            }
+            if (policy.YubikeyPolicy.AllowedFirmwareVersion.Any())
+            {
+                if (!(policy.YubikeyPolicy.AllowedFirmwareVersion.Contains(yubikey.FirmwareVersion.ToString())))
+                {
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+                    LocalizedStrings.YKVal_Allowed_Firmware_Version, yubikey.FirmwareVersion.ToString()));
+                }
+            }
+            #endregion
 
             return result;
         }
         public CertificateRequestValidationResult ExtractAttestion(CertificateRequestValidationResult result,
             CertificateRequestPolicy policy, CertificateDatabaseRow dbRow, out YubikeyObject yubikey)
         {
-            //YubikeyObject yubikeyTemp = new YubikeyObject();
+            if (result.DeniedForIssuance)
+            {
+                yubikey = new YubikeyObject();
+                return result;
+            }
 
+            // Yubikey Attestation is stored in these two extensions in the CSR. If present , extract them, otherwise buuild an empty YubikeyObject.
             if (dbRow.CertificateExtensions.ContainsKey(YubikeyOID.ATTESTION_DEVICE) && dbRow.CertificateExtensions.ContainsKey(YubikeyOID.ATTESTION_INTERMEDIATE))
             {
-                Console.WriteLine("Update the yubikeyObject");
-                dbRow.CertificateExtensions.TryGetValue(YubikeyOID.ATTESTION_DEVICE, out var AttestionCertificate);
-                dbRow.CertificateExtensions.TryGetValue(YubikeyOID.ATTESTION_INTERMEDIATE, out var IntermediateCertificate);
-                yubikey = new YubikeyObject("", AttestionCertificate, IntermediateCertificate);
+                try
+                {
+                    dbRow.CertificateExtensions.TryGetValue(YubikeyOID.ATTESTION_DEVICE, out var AttestionCertificateByte);
+                    dbRow.CertificateExtensions.TryGetValue(YubikeyOID.ATTESTION_INTERMEDIATE, out var IntermediateCertificateByte);
+                    X509Certificate2 AttestationCertificate = new X509Certificate2(AttestionCertificateByte);
+                    X509Certificate2 IntermediateCertificate = new X509Certificate2(IntermediateCertificateByte);
+                    yubikey = new YubikeyObject(dbRow.PublicKey, AttestationCertificate, IntermediateCertificate);
+                }
+                catch (Exception ex)
+                {
+                    yubikey = new YubikeyObject();
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(LocalizedStrings.YKVal_Unable_to_read_embedded_certificates, ex.Message));
+                }
             }
             else
             {
                 yubikey = new YubikeyObject();
             }
-            if (result.DeniedForIssuance || null == policy.YubikeyRequirement)
-            {
-                return result;
-            }
-            if (dbRow.CertificateExtensions.ContainsKey(YubikeyOID.ATTESTION_DEVICE))
-            {
-                Console.WriteLine("Yubikey Device Attestation found");
-            }
-            if (dbRow.CertificateExtensions.ContainsKey(YubikeyOID.ATTESTION_INTERMEDIATE))
-            {
-                Console.WriteLine("Yubikey Intermediate Attestation found");
-            }
-            
-
-            try
-            {
-                //_CertificateRequest.
-                //_CertificateRequest. .LoadSigningRequest(certificateRequest)
-            }
-            catch (Exception ex)
-            {
-                result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, ex.Message);
-            }
-
-            yubikey = new YubikeyObject();
             return result;
         }
     }

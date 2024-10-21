@@ -174,7 +174,7 @@ namespace TameMyCerts
 
                 result = _dsValidator.VerifyRequest(result, policy, dsObject);
                 result = _ykValidator.VerifyRequest(result, policy, ykObject);
-                result = _ccValidator.VerifyRequest(result, policy, dbRow, dsObject, _caConfig);
+                result = _ccValidator.VerifyRequest(result, policy, dbRow, dsObject, _caConfig, ykObject);
                 result = _frValidator.VerifyRequest(result, policy, dbRow);
 
                 #endregion

@@ -18,15 +18,29 @@ using System.Xml.Serialization;
 namespace TameMyCerts.Models
 {
     // Must be public due to XML serialization, otherwise 0x80131509 / System.InvalidOperationException
-    [XmlRoot(ElementName = "YubikeyRequirement")]
-    public class YubikeyRequirement
+    [XmlRoot(ElementName = "YubikeyPolicy")]
+    public class YubikeyPolicy
     {
         [XmlArray(ElementName = "AllowedPinPolicies")]
         [XmlArrayItem(ElementName = "string")]
         public List<string> AllowedPinPolicies { get; set; } = new List<string>();
-
+        [XmlArray(ElementName = "DisallowedPinPolicies")]
+        [XmlArrayItem(ElementName = "string")]
+        public List<string> DisallowedPinPolicies { get; set; } = new List<string>();
         [XmlArray(ElementName = "AllowedTouchPolicies")]
         [XmlArrayItem(ElementName = "string")]
         public List<string> AllowedTouchPolicies { get; set; } = new List<string>();
+        [XmlArray(ElementName = "DisallowedTouchPolicies")]
+        [XmlArrayItem(ElementName = "string")]
+        public List<string> DisallowedTouchPolicies { get; set; } = new List<string>();
+        [XmlArray(ElementName = "DisallowedFirmwareVersion")]
+        [XmlArrayItem(ElementName = "string")]
+        public List<string> DisallowedFirmwareVersion { get; set; } = new List<string>();
+        [XmlArray(ElementName = "AllowedFirmwareVersion")]
+        [XmlArrayItem(ElementName = "string")]
+        public List<string> AllowedFirmwareVersion { get; set; } = new List<string>();
+        [XmlElement(ElementName = "FIPSRequired")]
+        public bool FIPSRequired { get; set; }
+
     }
 }
