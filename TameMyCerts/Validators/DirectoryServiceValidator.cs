@@ -236,7 +236,7 @@ namespace TameMyCerts.Validators
             {
                 var sidExt = new X509CertificateExtensionSecurityIdentifier(dsObject.SecurityIdentifier);
 
-                result.AddCertificateExtension(WinCrypt.szOID_DS_CA_SECURITY_EXT, sidExt.RawData);
+                result.AddCertificateExtension(WinCrypt.szOID_NTDS_CA_SECURITY_EXT, sidExt.RawData);
             }
 
             #endregion
@@ -251,6 +251,32 @@ namespace TameMyCerts.Validators
 
             #endregion
 
+            #region Process Maximum password age
+            if (dsMapping.MaximumPasswordAge > 0)
+            {
+                if (!(dsObject.Attributes.ContainsKey("pwdlastset")))
+                {
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+                        LocalizedStrings.DirVal_Account_Password_failed_to_parse, dsMapping.MaximumPasswordAge));
+                }
+                try
+                {
+                    long.TryParse(dsObject.Attributes["pwdlastSet"], out long pwdLastSetLong);
+                    UInt32 PasswordAge = (UInt32)DateTime.UtcNow.Subtract(DateTime.FromFileTimeUtc(pwdLastSetLong)).TotalMinutes;
+                    Console.WriteLine($"Password age: {PasswordAge}");
+                    if (dsMapping.MaximumPasswordAge < PasswordAge)
+                    {
+                        result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+                        LocalizedStrings.DirVal_Account_Password_to_old, dsMapping.MaximumPasswordAge));
+                    }
+                }
+                catch
+                {
+                    result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
+    LocalizedStrings.DirVal_Account_Password_failed_to_parse, dsMapping.MaximumPasswordAge));
+                }
+            }
+            #endregion
             return result;
         }
     }
