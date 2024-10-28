@@ -39,6 +39,7 @@ namespace TameMyCerts
         private readonly FinalResultValidator _frValidator = new FinalResultValidator();
         private readonly RequestAttributeValidator _raValidator = new RequestAttributeValidator();
         private readonly CertificateTemplateCache _templateCache = new CertificateTemplateCache();
+        private readonly AdvancedPoliciesValidator _advancedPolicyValidator = new AdvancedPoliciesValidator();
         private CertificateAuthorityConfiguration _caConfig;
         private Logger _logger;
         private CertificateRequestPolicyCache _policyCache;
@@ -169,9 +170,18 @@ namespace TameMyCerts
 
                 result = _dsValidator.GetMappedActiveDirectoryObject(result, policy, dbRow, template, out var dsObject);
 
-                result = _dsValidator.VerifyRequest(result, policy, dsObject);
+                // Run the old policy if no advanced policy is defined
+                if (! policy.AdvancedPolicy.Any())
+                {
+                    result = _dsValidator.VerifyRequest(result, policy, dsObject);
+                }
+                else
+                {
+                    result = _advancedPolicyValidator.VerifyRequest(result, policy.AdvancedPolicy, dbRow, dsObject, _caConfig);
+                }
                 result = _ccValidator.VerifyRequest(result, policy, dbRow, dsObject, _caConfig);
                 result = _frValidator.VerifyRequest(result, policy, dbRow);
+
 
                 #endregion
 

@@ -83,6 +83,9 @@ namespace TameMyCerts.Models
         [XmlElement(ElementName = "DirectoryServicesMapping")]
         public DirectoryServicesMapping DirectoryServicesMapping { get; set; }
 
+        [XmlElement(ElementName = "AdvancedPolicy")]
+        public List<AdvancedPolicy> AdvancedPolicy { get; set; } = new List<AdvancedPolicy>();
+
         [XmlElement(ElementName = "SupplementDnsNames")]
         public bool SupplementDnsNames { get; set; }
 
