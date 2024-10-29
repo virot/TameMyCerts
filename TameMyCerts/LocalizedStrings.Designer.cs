@@ -295,6 +295,51 @@ namespace TameMyCerts {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Directory Services Validator matched the group &quot;{0}&quot; in the allowed groups &quot;{1}&quot;.
+        /// </summary>
+        internal static string event_DirVal_Debug_Matched_AllowedGroups {
+            get {
+                return ResourceManager.GetString("event_DirVal_Debug_Matched_AllowedGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Directory Services Validator matched the group &quot;{0}&quot; in the disallowed groups &quot;{1}&quot;.
+        /// </summary>
+        internal static string event_DirVal_Debug_Matched_DisallowedGroups {
+            get {
+                return ResourceManager.GetString("event_DirVal_Debug_Matched_DisallowedGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Directory Services Validator failed to matched the group &quot;{0}&quot; in the allowed groups &quot;{1}&quot;.
+        /// </summary>
+        internal static string event_DirVal_Debug_No_Matched_AllowedGroups {
+            get {
+                return ResourceManager.GetString("event_DirVal_Debug_No_Matched_AllowedGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Directory Services Validator failed to matched the group &quot;{0}&quot; in the disallowed groups &quot;{1}&quot;.
+        /// </summary>
+        internal static string event_DirVal_Debug_No_Matched_DisallowedGroups {
+            get {
+                return ResourceManager.GetString("event_DirVal_Debug_No_Matched_DisallowedGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The TameMyCerts policy module has been initialized..
+        /// </summary>
+        internal static string event_TameMyCerts_Initialized {
+            get {
+                return ResourceManager.GetString("event_TameMyCerts_Initialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The {0} policy module currently does not support standalone certification authorities..
         /// </summary>
         internal static string Events_MODULE_NOT_SUPPORTED {

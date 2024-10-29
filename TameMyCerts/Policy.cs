@@ -55,6 +55,7 @@ namespace TameMyCerts
 
             _appVersion = ((AssemblyFileVersionAttribute)assembly.GetCustomAttribute(
                 typeof(AssemblyFileVersionAttribute))).Version;
+
         }
 
         #endregion
@@ -83,6 +84,7 @@ namespace TameMyCerts
 
             PreventModuleLoadOnStandaloneCa();
             InitializeWindowsDefaultPolicyModule(strConfig);
+            //TameMyCertsLogging.Log.TameMyCerts_Initialized();
         }
 
         public int VerifyRequest(string strConfig, int context, int isNewRequest, int flags)

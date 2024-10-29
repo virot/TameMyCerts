@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 using TameMyCerts.Enums;
@@ -189,9 +190,14 @@ namespace TameMyCerts.Validators
 
                 if (matches == 0)
                 {
+                    TameMyCertsLogging.Log.DirVal_Debug_No_Matched_AllowedGroups(string.Join(", ",dsObject.MemberOf.ToList()), string.Join(", ", dsMapping.AllowedSecurityGroups.ToList()));
                     result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
                         LocalizedStrings.DirVal_Account_Groups_Not_Allowed,
                         dsMapping.ObjectCategory, dsObject.DistinguishedName));
+                }
+                else
+                {
+                    TameMyCertsLogging.Log.DirVal_Debug_Matched_AllowedGroups(string.Join(", ", dsObject.MemberOf.ToList()), string.Join(", ", dsMapping.AllowedSecurityGroups.ToList()));
                 }
             }
 
@@ -200,6 +206,7 @@ namespace TameMyCerts.Validators
                 foreach (var group in dsObject.MemberOf.Where(group =>
                              dsMapping.DisallowedSecurityGroups.Any(s => s.Equals(group, Comparison))))
                 {
+                    TameMyCertsLogging.Log.DirVal_Debug_Matched_DisallowedGroups(string.Join(", ", dsObject.MemberOf.ToList()), string.Join(", ", dsMapping.AllowedSecurityGroups.ToList()));
                     result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(
                         LocalizedStrings.DirVal_Account_Groups_Disallowed,
                         dsMapping.ObjectCategory, dsObject.DistinguishedName, group));
