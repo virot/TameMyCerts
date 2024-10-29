@@ -22,38 +22,38 @@ namespace TameMyCerts
         }
 
         [Event(4001, Level = EventLevel.Verbose, Channel = EventChannel.Debug, Task = EventTask.None, Keywords = EventKeywords.None)]
-        public void DirVal_Debug_Matched_AllowedGroups(string usergroups, string policygroups)
+        public void DirVal_Debug_Matched_AllowedGroups(string usergroups, string allowgroups)
         {
             if (IsEnabled())
             {
-                WriteEvent(4001, usergroups, policygroups);
+                WriteEvent(4001, usergroups, allowgroups);
             }
         }
 
         [Event(4002, Level = EventLevel.Verbose, Channel = EventChannel.Debug, Task = EventTask.None, Keywords = EventKeywords.None)]
-        public void DirVal_Debug_Matched_DisallowedGroups(string usergroups, string policygroups)
+        public void DirVal_Debug_Matched_DisallowedGroups(string usergroups, string disallowgroups)
         {
             if (IsEnabled())
             {
-                WriteEvent(4002, usergroups, policygroups);
+                WriteEvent(4002, usergroups, disallowgroups);
             }
         }
 
         [Event(4003, Level = EventLevel.Verbose, Channel = EventChannel.Debug, Task = EventTask.None, Keywords = EventKeywords.None)]
-        public void DirVal_Debug_No_Matched_AllowedGroups(string usergroups, string policygroups)
+        public void DirVal_Debug_No_Matched_AllowedGroups(string usergroups, string allowgroups)
         {
             if (IsEnabled())
             {
-                WriteEvent(4003, usergroups, policygroups);
+                WriteEvent(4003, usergroups, allowgroups);
             }
         }
 
         [Event(4004, Level = EventLevel.Verbose, Channel = EventChannel.Debug, Task = EventTask.None, Keywords = EventKeywords.None)]
-        public void DirVal_Debug_No_Matched_DisallowedGroups(string usergroups, string policygroups)
+        public void DirVal_Debug_No_Matched_DisallowedGroups(string usergroups, string disallowgroups)
         {
             if (IsEnabled())
             {
-                WriteEvent(4004, usergroups, policygroups);
+                WriteEvent(4004, usergroups, disallowgroups);
             }
         }
     }
