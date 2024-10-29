@@ -9,17 +9,22 @@ using TameMyCerts.Validators;
 namespace TameMyCerts
 {
     [EventSource(Name = "TameMyCerts", LocalizationResources = "TameMyCerts.LocalizedStrings")]
-    public sealed class TameMyCertsLogging : EventSource
+    public sealed class AdvancedLogging : EventSource
     {
-        public static TameMyCertsLogging Log = new TameMyCertsLogging();
+        public static AdvancedLogging Log = new AdvancedLogging();
 
-        [Event(1, Message = "Localization", Level = EventLevel.Informational, Channel = EventChannel.Admin, Task = EventTask.None, Keywords = EventKeywords.None)]
+        #region Policy main events
+        [Event(1, Message = "TBFixed", Level = EventLevel.Informational, Channel = EventChannel.Admin, Task = EventTask.None, Keywords = EventKeywords.None)]
         public void TameMyCerts_Initialized()
         {
             if (IsEnabled()) {
                 WriteEvent(1, TameMyCerts.LocalizedStrings.event_TameMyCerts_Initialized); 
             }
         }
+
+        #endregion
+
+        #region DirectoryService Validator events 4001-4099
 
         [Event(4001, Level = EventLevel.Verbose, Channel = EventChannel.Debug, Task = EventTask.None, Keywords = EventKeywords.None)]
         public void DirVal_Debug_Matched_AllowedGroups(string usergroups, string allowgroups)
@@ -56,5 +61,7 @@ namespace TameMyCerts
                 WriteEvent(4004, usergroups, disallowgroups);
             }
         }
+
+        #endregion
     }
 }

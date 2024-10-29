@@ -89,6 +89,7 @@
     <Compile Include="Enums\UserAccountControl.cs" />
     <Compile Include="Enums\WinCrypt.cs" />
     <Compile Include="Enums\WinError.cs" />
+    <Compile Include="AdvancedLogging.cs" />
     <Compile Include="Validators\DirectoryServiceValidator.cs" />
     <Compile Include="ClassExtensions\IPAddressExtensions.cs" />
     <Compile Include="LocalizedStrings.Designer.cs">
