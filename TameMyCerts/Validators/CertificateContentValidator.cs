@@ -31,7 +31,7 @@ internal class CertificateContentValidator
 {
     private const StringComparison Comparison = StringComparison.InvariantCultureIgnoreCase;
 
-    private static string ReplaceTokenValues(string input, string identifier,
+    public static string ReplaceTokenValues(string input, string identifier,
         IReadOnlyCollection<KeyValuePair<string, string>> list)
     {
         // This extracts all tokens and verifies if the given list contains (=knows) the token

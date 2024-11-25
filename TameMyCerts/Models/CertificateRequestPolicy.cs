@@ -98,6 +98,8 @@ public class CertificateRequestPolicy
 
     [XmlElement(ElementName = "PermitEmptyIdentities")]
     public bool PermitEmptyIdentities { get; set; }
+    [XmlElement(ElementName = "Notifyer")]
+    public NotifyerPolicy Notifyer { get; set; }
 
     private static string ConvertToHumanReadableXml(string inputString)
     {

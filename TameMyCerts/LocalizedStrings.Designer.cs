@@ -295,6 +295,44 @@ namespace TameMyCerts {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Notifyer is unable to send mail for request {0} (template {1}). Configuration is missing {2} attribute..
+        /// </summary>
+        internal static string event_Notifyer_4401_Missing_Required_Information {
+            get {
+                return ResourceManager.GetString("event_Notifyer_4401_Missing_Required_Information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The recipient for the mail is {2}, the notify policy for template {0} is:
+        ///
+        ///{1}.
+        /// </summary>
+        internal static string event_Notifyer_4402_Debug_Notifyer_Policy {
+            get {
+                return ResourceManager.GetString("event_Notifyer_4402_Debug_Notifyer_Policy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to build notification mail for request {0} (template {1}), the error recived is: {2}.
+        /// </summary>
+        internal static string event_Notifyer_4403_Failed_to_build_email {
+            get {
+                return ResourceManager.GetString("event_Notifyer_4403_Failed_to_build_email", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to send notification mail for request {0} (template {1}), the error recived is: {2}.
+        /// </summary>
+        internal static string event_Notifyer_4404_Failed_to_send_email {
+            get {
+                return ResourceManager.GetString("event_Notifyer_4404_Failed_to_send_email", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} policy module version {1} is ready to process incoming certificate requests..
         /// </summary>
         internal static string event_TMC_1_PolicyModule_Success_Initiated {

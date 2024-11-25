@@ -21,6 +21,7 @@ namespace TameMyCerts
             public const EventTask TameMyCerts = (EventTask)2;
             public const EventTask YubikeyValidator = (EventTask)10;
             public const EventTask XMLParser = (EventTask)11;
+            public const EventTask PolicyNotifyer = (EventTask)12;
         }
 
         #region Tame My Certs
@@ -170,6 +171,41 @@ namespace TameMyCerts
             if (IsEnabled())
             {
                 WriteEvent(4208, requestID);
+            }
+        }
+        #endregion
+
+        #region Nofifyer submodule events 4401-4599
+        [Event(4401, Level = EventLevel.Warning, Channel = EventChannel.Admin, Task = Tasks.PolicyNotifyer, Keywords = EventKeywords.None)]
+        public void Notifyer_4401_Missing_Required_Information(int requestID, string template, string missingConfiguration)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(4401, requestID, template, missingConfiguration);
+            }
+        }
+        [Event(4402, Level = EventLevel.Verbose, Channel = EventChannel.Debug, Task = Tasks.PolicyNotifyer, Keywords = EventKeywords.None)]
+        public void Notifyer_4402_Debug_Notifyer_Policy(string template, string policy, string mailTo)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(4402, template, policy, mailTo);
+            }
+        }
+        [Event(4403, Level = EventLevel.Warning, Channel = EventChannel.Admin, Task = Tasks.PolicyNotifyer, Keywords = EventKeywords.None)]
+        public void Notifyer_4403_Failed_to_build_email(int requestID, string template, string error)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(4403, requestID, template, error);
+            }
+        }
+        [Event(4404, Level = EventLevel.Warning, Channel = EventChannel.Admin, Task = Tasks.PolicyNotifyer, Keywords = EventKeywords.None)]
+        public void Notifyer_4404_Failed_to_send_email(int requestID, string template, string error)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(4404, requestID, template, error);
             }
         }
         #endregion
