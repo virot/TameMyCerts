@@ -18,19 +18,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
-using System.Security.Cryptography.X509Certificates;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using TameMyCerts.ClassExtensions;
-using TameMyCerts.Enums;
 using TameMyCerts.Models;
-using TameMyCerts.X509;
 using TameMyCerts.Validators;
 
 namespace TameMyCerts.Submodules
 {
     /// <summary>
-    ///     This validator will check that the CSR is issued by a real Yubikey
+    ///     This submodule is resonsible for notifying the users with a more informative test.
     /// </summary>
     internal class NotifyerSubModule
     {
@@ -43,8 +37,12 @@ namespace TameMyCerts.Submodules
                 return;
             }
 
+            // Use EWT to dump the policy to debug if wanted
+            EWTLogger.Log.Notifyer_4402_Debug_Notifyer_Policy(template, notifyerPolicy.SaveToString());
+
+
             // Start by going through the policy and check if we have the minimum amount of information.
-            if (!notifyerPolicy.MailTo.Any())
+            if (notifyerPolicy.MailTo is null || notifyerPolicy.MailTo.Length == 0)
             {
                 EWTLogger.Log.Notifyer_4401_Missing_Required_Information(requestID, template, "MailTo");
                 return;
@@ -61,9 +59,6 @@ namespace TameMyCerts.Submodules
             }
 
             string replacedMailTo = CertificateContentValidator.ReplaceTokenValues(notifyerPolicy.MailTo, "ad", null != dsObject ? dsObject.Attributes.ToList() : new List<KeyValuePair<string, string>>());
-
-            // Use EWT to dump the policy to debug if wanted
-            EWTLogger.Log.Notifyer_4402_Debug_Notifyer_Policy(template, notifyerPolicy.SaveToString(), replacedMailTo);
 
             MailMessage mailMessage = new MailMessage();
             try
@@ -122,6 +117,7 @@ namespace TameMyCerts.Submodules
                     //    MailClient.Credentials = new System.Net.NetworkCredential(notifyerPolicy.MailSendUser, notifyerPolicy.MailSendPassword);
                     //}
                     MailClient.Send(mailMessage);
+                    EWTLogger.Log.Notifyer_4405_Success_sending_mail(requestID, template, string.Join(",", mailMessage.To.Select(ma => ma.Address)), mailMessage.Subject, mailMessage.Body);
                 }
             }
             catch (Exception ex)

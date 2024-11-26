@@ -13,6 +13,7 @@ using System.Runtime.InteropServices.JavaScript;
 using netDumbster.smtp;
 using TameMyCerts.Submodules;
 using System.Globalization;
+using System.Threading;
 
 namespace TameMyCerts.Tests
 {
@@ -21,7 +22,7 @@ namespace TameMyCerts.Tests
         private readonly CertificateRequestPolicy _policy;
         private readonly ActiveDirectoryObject _dsObject;
         private readonly ITestOutputHelper output;
-        private SimpleSmtpServer _smtpserver;
+        private static SimpleSmtpServer _smtpserver;
         private readonly string _defaultCsr;
 
 
@@ -29,8 +30,6 @@ namespace TameMyCerts.Tests
 
         public NotifyerTests(ITestOutputHelper output)
         {
-            _smtpserver = SimpleSmtpServer.Start(2525);
-
             _policy = new CertificateRequestPolicy {
                 Notifyer = new NotifyerPolicy
                 {
@@ -114,33 +113,42 @@ namespace TameMyCerts.Tests
                 new Win32Exception(result.StatusCode).Message);
             output.WriteLine(string.Join("\n", result.Description));
         }
+       
+
 
         [Fact]
         public void Validate_Notifyer_MailTo()
         {
+            _smtpserver = SimpleSmtpServer.Start(2525);
+
             var dbRow = new CertificateDatabaseRow(_defaultCsr, CertCli.CR_IN_PKCS10);
             CertificateRequestPolicy policy = _policy;
             policy.Notifyer.MailTo = "{ad:mail}";
             policy.Notifyer.NotifyOnSuccess = true;
-
+            
             CertificateRequestValidationResult result = new CertificateRequestValidationResult(dbRow);
 
             NotifyerSubModule.Notify(1001, "UnitTest", result, policy.Notifyer, _dsObject);
 
             Assert.Equal(1, _smtpserver.ReceivedEmailCount);
             Assert.Contains("rudi@adcslabor.de", _smtpserver.ReceivedEmail[0].ToAddresses.Select(a => a.Address));
+            _smtpserver.Stop();
+            _smtpserver = null;
+
         }
 
         [Fact]
         public void Validate_Notifyer_Failure_Reason()
         {
+            _smtpserver = SimpleSmtpServer.Start(2525);
+
             var dbRow = new CertificateDatabaseRow(_defaultCsr, CertCli.CR_IN_PKCS10);
             CertificateRequestPolicy policy = _policy;
             policy.Notifyer.MailTo = "{ad:mail}";
             policy.Notifyer.NotifyOnFailure = true;
             policy.Notifyer.MailFailure.MailSubject = "Certificate request {vr:requestid} is {vr:status}";
             policy.Notifyer.MailFailure.MailBody = "The certificate request was {vr:status} due to {vr:reason}";
-
+            
             CertificateRequestValidationResult result = new CertificateRequestValidationResult(dbRow);
             result.SetFailureStatus(WinError.CERTSRV_E_TEMPLATE_DENIED, string.Format(LocalizedStrings.DirVal_Account_Password_to_old, 1337));
 
@@ -150,6 +158,52 @@ namespace TameMyCerts.Tests
             Assert.Contains("rudi@adcslabor.de", _smtpserver.ReceivedEmail[0].ToAddresses.Select(a => a.Address));
             Assert.Contains("1337", _smtpserver.ReceivedEmail[0].MessageParts[0].BodyData);
             Assert.Contains("Certificate request 1002 is Denied", _smtpserver.ReceivedEmail[0].Subject);
+
+            _smtpserver.Stop();
+            _smtpserver = null;
+
+
+        }
+
+        [Fact]
+        public void Validate_Fail_on_missing_recipient_missing()
+        {
+            //_smtpserver = SimpleSmtpServer.Start(2525);
+            _listener.ClearEvents();
+
+            var dbRow = new CertificateDatabaseRow(_defaultCsr, CertCli.CR_IN_PKCS10);
+            CertificateRequestPolicy policy = _policy;
+            policy.Notifyer.NotifyOnSuccess = true;
+
+            CertificateRequestValidationResult result = new CertificateRequestValidationResult(dbRow);
+
+            NotifyerSubModule.Notify(1003, "UnitTest", result, policy.Notifyer, _dsObject);
+
+            //Assert.Equal(0, _smtpserver.ReceivedEmailCount);
+            Assert.Contains(4401, _listener.Events.Select(e => e.EventId));
+            //_smtpserver.Stop();
+            //_smtpserver = null;
+        }
+
+        [Fact]
+        public void Validate_Fail_on_incorrect_recipient()
+        {
+            //_smtpserver = SimpleSmtpServer.Start(2525);
+            _listener.ClearEvents();
+
+            var dbRow = new CertificateDatabaseRow(_defaultCsr, CertCli.CR_IN_PKCS10);
+            CertificateRequestPolicy policy = _policy;
+            policy.Notifyer.NotifyOnSuccess = true;
+            policy.Notifyer.MailTo = "mail@example@invalid";
+
+            CertificateRequestValidationResult result = new CertificateRequestValidationResult(dbRow);
+
+            NotifyerSubModule.Notify(1004, "UnitTest", result, policy.Notifyer, _dsObject);
+
+            //Assert.Equal(0, _smtpserver.ReceivedEmailCount);
+            Assert.Contains(4403, _listener.Events.Select(e => e.EventId));
+            //_smtpserver.Stop();
+            //_smtpserver = null;
         }
     }
 }

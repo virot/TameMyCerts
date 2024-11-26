@@ -185,11 +185,11 @@ namespace TameMyCerts
             }
         }
         [Event(4402, Level = EventLevel.Verbose, Channel = EventChannel.Debug, Task = Tasks.PolicyNotifyer, Keywords = EventKeywords.None)]
-        public void Notifyer_4402_Debug_Notifyer_Policy(string template, string policy, string mailTo)
+        public void Notifyer_4402_Debug_Notifyer_Policy(string template, string policy)
         {
             if (IsEnabled())
             {
-                WriteEvent(4402, template, policy, mailTo);
+                WriteEvent(4402, template, policy);
             }
         }
         [Event(4403, Level = EventLevel.Warning, Channel = EventChannel.Admin, Task = Tasks.PolicyNotifyer, Keywords = EventKeywords.None)]
@@ -206,6 +206,14 @@ namespace TameMyCerts
             if (IsEnabled())
             {
                 WriteEvent(4404, requestID, template, error);
+            }
+        }
+        [Event(4405, Level = EventLevel.Informational, Channel = EventChannel.Analytic, Task = Tasks.PolicyNotifyer, Keywords = EventKeywords.None)]
+        public void Notifyer_4405_Success_sending_mail(int requestID, string template, string recipients, string subject, string body)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(4405, requestID, template, recipients, subject, body);
             }
         }
         #endregion

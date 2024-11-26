@@ -445,7 +445,7 @@ with the content:
     <value>Notifyer is unable to send mail for request {0} (template {1}). Configuration is missing {2} attribute.</value>
   </data>
   <data name="event_Notifyer_4402_Debug_Notifyer_Policy" xml:space="preserve">
-    <value>The recipient for the mail is {2}, the notify policy for template {0} is:
+    <value>The notify policy for template {0} is:
 
 {1}</value>
   </data>
@@ -454,5 +454,14 @@ with the content:
   </data>
   <data name="event_Notifyer_4404_Failed_to_send_email" xml:space="preserve">
     <value>Failed to send notification mail for request {0} (template {1}), the error recived is: {2}</value>
+  </data>
+  <data name="event_Notifyer_4405_Success_sending_mail" xml:space="preserve">
+    <value>Successfully sent mail for request {0} (template {1}).
+
+Recipients:  {2}
+
+Subject: {3}
+
+Body: {4}</value>
   </data>
 </root>

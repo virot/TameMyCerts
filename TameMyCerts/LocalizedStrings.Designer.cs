@@ -304,7 +304,7 @@ namespace TameMyCerts {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The recipient for the mail is {2}, the notify policy for template {0} is:
+        ///   Looks up a localized string similar to The notify policy for template {0} is:
         ///
         ///{1}.
         /// </summary>
@@ -329,6 +329,21 @@ namespace TameMyCerts {
         internal static string event_Notifyer_4404_Failed_to_send_email {
             get {
                 return ResourceManager.GetString("event_Notifyer_4404_Failed_to_send_email", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully sent mail for request {0} (template {1}).
+        ///
+        ///Recipients:  {2}
+        ///
+        ///Subject: {3}
+        ///
+        ///Body: {4}.
+        /// </summary>
+        internal static string event_Notifyer_4405_Success_sending_mail {
+            get {
+                return ResourceManager.GetString("event_Notifyer_4405_Success_sending_mail", resourceCulture);
             }
         }
         
