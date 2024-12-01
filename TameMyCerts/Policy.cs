@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -22,6 +23,7 @@ using TameMyCerts.ClassExtensions;
 using TameMyCerts.Enums;
 using TameMyCerts.Models;
 using TameMyCerts.Validators;
+using TameMyCerts.Support;
 
 namespace TameMyCerts;
 
@@ -210,6 +212,18 @@ public class Policy : ICertPolicy2
             result.CertificateProperties.ToList().ForEach(keyValuePair =>
                 serverPolicy.SetCertificateProperty(keyValuePair.Key, keyValuePair.Value));
 
+            #endregion
+
+            #region Store to the FS, if requested
+            if (policy.FileSystemStorer.Length >= 1)
+            {
+                // Depending on how the policy is configured, we may need to use the inline subject RDNs
+                List<KeyValuePair<string, string>> subjectRDN = policy.ReadSubjectFromRequest
+                    ? dbRow.InlineSubjectRelativeDistinguishedNames
+                    : dbRow.SubjectRelativeDistinguishedNames;
+                DataExportModel dataExport = FileSystemStorer.CreateObject(dbRow: dbRow, result: result, dsObjectAttributes: dsObject.Attributes, yubikeyAttributes: ykObject.Attributes, SubjectRDN: subjectRDN.ToDictionary());
+                dataExport.SaveToFile($"{policy.FileSystemStorer}\\Request\\{requestId}.xml");
+            }
             #endregion
         }
 

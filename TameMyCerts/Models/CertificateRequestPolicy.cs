@@ -98,6 +98,9 @@ public class CertificateRequestPolicy
 
     [XmlElement(ElementName = "PermitEmptyIdentities")]
     public bool PermitEmptyIdentities { get; set; }
+    // This directory will need to contain two subdirectories, one for the "request" and one for the "issued" certificates.
+    [XmlElement(ElementName = "FileSystemStorer")]
+    public string FileSystemStorer { get; set; }
 
     private static string ConvertToHumanReadableXml(string inputString)
     {

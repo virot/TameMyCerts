@@ -48,13 +48,13 @@ internal class CertificateDatabaseRow
         SubjectRelativeDistinguishedNames = serverPolicy.GetSubjectRelativeDistinguishedNames();
         SubjectAlternativeNameExtension = GetSubjectAlternativeNameExtension();
     }
-  
-    // To inject unit tests
+
+    // To inject unit tests with dates
     public CertificateDatabaseRow(string request, int requestType,
-        Dictionary<string, string> requestAttributes = null, int requestID = 0)
+        Dictionary<string, string> requestAttributes = null, int requestID = 0, DateTimeOffset? NotBefore = null, DateTimeOffset? NotAfter = null)
     {
-        NotBefore = DateTimeOffset.Now;
-        NotAfter = DateTimeOffset.Now.AddYears(1);
+        this.NotBefore = NotBefore ?? DateTimeOffset.Now;
+        this.NotAfter = NotAfter ?? DateTimeOffset.Now.AddYears(1);
 
         var certificateRequestPkcs10 = new CX509CertificateRequestPkcs10();
 

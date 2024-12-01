@@ -1,0 +1,164 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Security.Principal;
+using Xunit;
+using TameMyCerts.Enums;
+using TameMyCerts.Models;
+using TameMyCerts.Validators;
+using Xunit.Abstractions;
+using TameMyCerts.Support;
+using System.IO;
+
+namespace TameMyCerts.Tests
+{
+    public class FileSystemStorerTests
+    {
+
+        private readonly CertificateRequestPolicy _policy;
+        private readonly ActiveDirectoryObject _dsObject;
+        private readonly ITestOutputHelper output;
+        private readonly string _defaultCsr;
+        private readonly CertificateContentValidator _CCvalidator = new();
+        private readonly CertificateAuthorityConfiguration _caConfig = null;
+        private readonly CertificateRequestValidator _CRvalidator = new();
+
+        private EWTLoggerListener _listener;
+
+        public FileSystemStorerTests(ITestOutputHelper output)
+        {
+            _policy = new CertificateRequestPolicy
+            {
+                
+            };
+
+            _dsObject = new ActiveDirectoryObject(
+    "CN=rudi,OU=Test-Users,DC=intra,DC=adcslabor,DC=de",
+    0,
+    new List<string> { "CN=PKI_UserCert,OU=ADCSLabor Gruppen,DC=intra,DC=adcslabor,DC=de" },
+    new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+    {
+                { "c", "DE" },
+                { "company", "ADCS Labor" },
+                { "displayName", "Rudi Ratlos" },
+                { "department", "IT Operations" },
+                { "givenName", "Rudi" },
+                { "initials", "RR" },
+                { "l", "München" },
+                { "mail", "rudi@adcslabor.de" },
+                { "name", "rudi" },
+                { "sAMAccountName", "rudi" },
+                { "sn", "Ratlos" },
+                { "st", "Bavaria" },
+                // Note that streetAddress is left out intentionally
+                { "title", "General Manager" },
+                { "userPrincipalName", "rudi@intra.adcslabor.de" },
+                { "extensionAttribute1", "rudi1@intra.adcslabor.de" },
+                { "extensionAttribute2", "rudi2@intra.adcslabor.de" }
+    },
+    new SecurityIdentifier("S-1-5-21-1381186052-4247692386-135928078-1225"),
+    new List<string>()
+);
+
+            _defaultCsr =
+            "-----BEGIN NEW CERTIFICATE REQUEST-----\n" +
+            "MIIDbTCCAlUCAQAwIDEeMBwGA1UEAxMVaW50cmFuZXQuYWRjc2xhYm9yLmRlMIIB\n" +
+            "IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApucZpFuF0+fvdL5C3jggO6vO\n" +
+            "9PA39MnPG0VQBy1n2pdhD/WwIt3St6UuMTXyNzEqSqm396Dw6+1iLCcP4DioLywd\n" +
+            "9rVHOAFmYNeahM24rYk9z+8rgx5a4GhtK6uSXD87aNDwz7l+QCnjapZu1bqfe/s+\n" +
+            "Wzo3e/jiSNIUUiY6/DQnHcZpPn/nBruLih0muZFWCevIRwu/w05DMrX9KTKax06l\n" +
+            "TJw+bQshKasiVDDW+0K5eDzvLu7cS6/Z9vVYHD7gGJNmX+YaJY+JS9tGaGyvDUiV\n" +
+            "ww+Do5S8p13dXqY/xwMngkq3kkvTB8hstxE1pd07OQojZ1SaLFEyh3pX7abXMQID\n" +
+            "AQABoIIBBjAcBgorBgEEAYI3DQIDMQ4WDDEwLjAuMTkwNDQuMjA+BgkqhkiG9w0B\n" +
+            "CQ4xMTAvMA4GA1UdDwEB/wQEAwIHgDAdBgNVHQ4EFgQUsp05C4spRvndIOKWrM7O\n" +
+            "aXVZLCUwPgYJKwYBBAGCNxUUMTEwLwIBBQwKb3R0aS1vdHRlbAwOT1RUSS1PVFRF\n" +
+            "TFx1d2UMDnBvd2Vyc2hlbGwuZXhlMGYGCisGAQQBgjcNAgIxWDBWAgEAHk4ATQBp\n" +
+            "AGMAcgBvAHMAbwBmAHQAIABTAG8AZgB0AHcAYQByAGUAIABLAGUAeQAgAFMAdABv\n" +
+            "AHIAYQBnAGUAIABQAHIAbwB2AGkAZABlAHIDAQAwDQYJKoZIhvcNAQELBQADggEB\n" +
+            "ABCVBVb7DJjiDP5SbSpw08nvrwnx5kiQ21xR7AJmtSYPLmsmC7uIPxk8Jsq1hDUO\n" +
+            "e2adcbMup6QY7GJGuc4OWhiaisKAeZB7Tcy5SEZIWe85DlkxEgLVFB9opmf+V3fA\n" +
+            "d/ZtYS0J7MPg6F9UEra30T3CcHlH5Y8NlMtaZmqjfXyw2C5YkahEfSmk2WVaZiSf\n" +
+            "8edZDjIw5eRZY/9QMi2JEcmSbq0DImiP4ou46aQ0U5iRGSNX+armMIhGJ1ycDXTM\n" +
+            "SBDUN6qWGioX8NHTlUmebLijw3zSFMnIuYWhXF7FZ1IKMPySzVmquvBAjzT4kWSw\n" +
+            "0bAr5OaOzHm7POogsgE8J1Y=\n" +
+            "-----END NEW CERTIFICATE REQUEST-----";
+
+            this.output = output;
+            this._listener = new EWTLoggerListener();
+        }
+
+        internal void PrintResult(CertificateRequestValidationResult result)
+        {
+            output.WriteLine("0x{0:X} ({0}) {1}.", result.StatusCode,
+                new Win32Exception(result.StatusCode).Message);
+            output.WriteLine(string.Join("\n", result.Description));
+        }
+
+        [Fact]
+        public void Validate_Éxtract_data()
+        {
+            //_smtpserver = SimpleSmtpServer.Start(2525);
+            _listener.ClearEvents();
+            var dbRow = new CertificateDatabaseRow(request: _defaultCsr, requestType: CertCli.CR_IN_PKCS10, NotBefore: new DateTimeOffset(2024, 11, 27, 12, 0, 0, TimeSpan.Zero), NotAfter: new DateTimeOffset(2025, 11, 27, 12, 0, 0, TimeSpan.Zero));
+
+
+            CertificateRequestPolicy policy = _policy;
+            
+
+            var template = new CertificateTemplate
+ (
+     "TestTemplate",
+     true,
+     KeyAlgorithmType.RSA
+ );
+
+            var dsObject = new ActiveDirectoryObject(
+            "CN=rudi,OU=Test-Users,DC=intra,DC=adcslabor,DC=de",
+            0,
+            new List<string> { "CN=PKI_UserCert,OU=ADCSLabor Gruppen,DC=intra,DC=adcslabor,DC=de" },
+            new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+            {
+                { "c", "DE" },
+                { "company", "ADCS Labor" },
+                { "displayName", "Rudi Ratlos" },
+                { "department", "IT Operations" },
+                { "givenName", "Rudi" },
+                { "initials", "RR" },
+                { "l", "München" },
+                { "mail", "rudi@adcslabor.de" },
+                { "name", "rudi" },
+                { "sAMAccountName", "rudi" },
+                { "sn", "Ratlos" },
+                { "st", "Bavaria" },
+                // Note that streetAddress is left out intentionally
+                { "title", "General Manager" },
+                { "userPrincipalName", "rudi@intra.adcslabor.de" },
+                { "extensionAttribute1", "rudi1@intra.adcslabor.de" },
+                { "extensionAttribute2", "rudi2@intra.adcslabor.de" }
+            },
+            new SecurityIdentifier("S-1-5-21-1381186052-4247692386-135928078-1225"),
+            new List<string>()
+        );
+            string filename = Path.GetTempFileName();
+
+            CertificateRequestValidationResult result = new CertificateRequestValidationResult(dbRow);
+            result = _CRvalidator.VerifyRequest(result, policy, dbRow, template);
+
+            DataExportModel dataExport = FileSystemStorer.CreateObject(dbRow: dbRow, result: result, dsObjectAttributes: dsObject.Attributes);
+            dataExport.SaveToFile(filename);
+
+            Assert.True(File.Exists(filename));
+
+            DataExportModel dataExport2 = DataExportModel.LoadFromFile(filename);
+
+            File.Delete(filename);
+
+            dataExport2.ReplaceTokenValues["ad:c"] = "SE";
+
+            output.WriteLine(dataExport2.ReplaceTokenValues["ad:c"]);
+            output.WriteLine(dataExport2.ReplaceTokenValues["ad:company"]);
+            //output.WriteLine(dataExport2.SaveToString());            
+        }
+    }
+}
