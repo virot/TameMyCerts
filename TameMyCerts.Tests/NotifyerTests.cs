@@ -8,12 +8,9 @@ using TameMyCerts.Enums;
 using TameMyCerts.Models;
 using TameMyCerts.Validators;
 using Xunit.Abstractions;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.InteropServices.JavaScript;
 using netDumbster.smtp;
 using TameMyCerts.Submodules;
-using System.Globalization;
-using System.Threading;
+using System.IO;
 
 namespace TameMyCerts.Tests
 {
@@ -24,7 +21,9 @@ namespace TameMyCerts.Tests
         private readonly ITestOutputHelper output;
         private static SimpleSmtpServer _smtpserver;
         private readonly string _defaultCsr;
-
+        private readonly CertificateContentValidator _CCvalidator = new();
+        private readonly CertificateAuthorityConfiguration _caConfig = null;
+        private readonly CertificateRequestValidator _CRvalidator = new();
 
         private EWTLoggerListener _listener;
 
@@ -197,6 +196,92 @@ namespace TameMyCerts.Tests
             policy.Notifyer.MailTo = "mail@example@invalid";
 
             CertificateRequestValidationResult result = new CertificateRequestValidationResult(dbRow);
+
+            NotifyerSubModule.Notify(1004, "UnitTest", result, policy.Notifyer, _dsObject);
+
+            //Assert.Equal(0, _smtpserver.ReceivedEmailCount);
+            Assert.Contains(4403, _listener.Events.Select(e => e.EventId));
+            //_smtpserver.Stop();
+            //_smtpserver = null;
+        }
+
+        [Fact]
+        public void Validate_Éxtract_data()
+        {
+            //_smtpserver = SimpleSmtpServer.Start(2525);
+            _listener.ClearEvents();
+            var dbRow = new CertificateDatabaseRow(request: _defaultCsr, requestType: CertCli.CR_IN_PKCS10, NotBefore: new DateTimeOffset(2024, 11, 27, 12, 0, 0, TimeSpan.Zero), NotAfter: new DateTimeOffset(2025, 11, 27, 12, 0, 0, TimeSpan.Zero));
+            
+
+            CertificateRequestPolicy policy = _policy;
+            policy.Notifyer.NotifyOnSuccess = true;
+            policy.Notifyer.MailTo = "mail@example@invalid";
+            policy.Subject.Add(
+            new SubjectRule
+            {
+                Field = RdnTypes.CommonName,
+                Mandatory = true,
+                MaxOccurrences = 0,
+                Patterns = new List<Pattern>
+                {
+                    new() { Expression = @"^(letsfail)\.adcslabor\.de$" }
+                }
+            }
+        );
+
+           var template = new CertificateTemplate
+(
+    "TestTemplate",
+    true,
+    KeyAlgorithmType.RSA
+);
+
+            var dsObject = new ActiveDirectoryObject(
+            "CN=rudi,OU=Test-Users,DC=intra,DC=adcslabor,DC=de",
+            0,
+            new List<string> { "CN=PKI_UserCert,OU=ADCSLabor Gruppen,DC=intra,DC=adcslabor,DC=de" },
+            new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+            {
+                { "c", "DE" },
+                { "company", "ADCS Labor" },
+                { "displayName", "Rudi Ratlos" },
+                { "department", "IT Operations" },
+                { "givenName", "Rudi" },
+                { "initials", "RR" },
+                { "l", "München" },
+                { "mail", "rudi@adcslabor.de" },
+                { "name", "rudi" },
+                { "sAMAccountName", "rudi" },
+                { "sn", "Ratlos" },
+                { "st", "Bavaria" },
+                // Note that streetAddress is left out intentionally
+                { "title", "General Manager" },
+                { "userPrincipalName", "rudi@intra.adcslabor.de" },
+                { "extensionAttribute1", "rudi1@intra.adcslabor.de" },
+                { "extensionAttribute2", "rudi2@intra.adcslabor.de" }
+            },
+            new SecurityIdentifier("S-1-5-21-1381186052-4247692386-135928078-1225"),
+            new List<string>()
+        );
+            string filename = Path.GetTempFileName();
+
+            CertificateRequestValidationResult result = new CertificateRequestValidationResult(dbRow);
+            result = _CRvalidator.VerifyRequest(result, policy, dbRow, template);
+
+            DataExportModel dataExport = ExtractData.CreateObject(dbRow: dbRow, result: result, dsObjectAttributes: dsObject.Attributes);
+            dataExport.SaveToFile(filename);
+
+            Assert.True(File.Exists(filename));
+
+            DataExportModel dataExport2 = DataExportModel.LoadFromFile(filename);
+
+            File.Delete(filename);
+
+            dataExport2.ReplaceTokenValues["ad:c"] = "SE";
+
+            output.WriteLine(dataExport2.ReplaceTokenValues["ad:c"]);
+            output.WriteLine(dataExport2.ReplaceTokenValues["ad:company"]);
+            //output.WriteLine(dataExport2.SaveToString());
 
             NotifyerSubModule.Notify(1004, "UnitTest", result, policy.Notifyer, _dsObject);
 

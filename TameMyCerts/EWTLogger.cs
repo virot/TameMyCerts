@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TameMyCerts.Enums;
+﻿using System.Diagnostics.Tracing;
 using TameMyCerts.Models;
-using TameMyCerts.Validators;
 
 namespace TameMyCerts
 {
-    [EventSource(Name = "TameMyCerts", LocalizationResources = "TameMyCerts.LocalizedStrings")]
+    [EventSource(Name = "TameMyCerts-TameMyCerts-Policy", LocalizationResources = "TameMyCerts.LocalizedStrings")]
     public sealed class EWTLogger : EventSource
     {
         public static EWTLogger Log = new EWTLogger();
@@ -109,7 +102,7 @@ namespace TameMyCerts
         #endregion
 
         #region Yubico Validator events 4201-4399
-        [Event(4201, Level = EventLevel.Warning, Channel = EventChannel.Operational, Task = Tasks.YubikeyValidator, Keywords = EventKeywords.None)]
+        [Event(4201, Level = EventLevel.Warning, Channel = EventChannel.Analytic, Task = Tasks.YubikeyValidator, Keywords = EventKeywords.None)]
         public void YKVal_4201_Denied_by_Policy(string denyingPolicy, int requestID)
         {
             if (IsEnabled())
@@ -117,7 +110,7 @@ namespace TameMyCerts
                 WriteEvent(4201, denyingPolicy, requestID);
             }
         }
-        [Event(4202, Level = EventLevel.Warning, Channel = EventChannel.Operational, Task = Tasks.YubikeyValidator, Keywords = EventKeywords.None)]
+        [Event(4202, Level = EventLevel.Warning, Channel = EventChannel.Analytic, Task = Tasks.YubikeyValidator, Keywords = EventKeywords.None)]
         public void YKVal_4202_Denied_by_Policy(int requestID)
         {
             if (IsEnabled())
@@ -125,7 +118,7 @@ namespace TameMyCerts
                 WriteEvent(4202, requestID);
             }
         }
-        [Event(4203, Level = EventLevel.Warning, Channel = EventChannel.Operational, Task = Tasks.YubikeyValidator, Keywords = EventKeywords.None)]
+        [Event(4203, Level = EventLevel.Warning, Channel = EventChannel.Analytic, Task = Tasks.YubikeyValidator, Keywords = EventKeywords.None)]
         public void YKVal_4203_Denied_due_to_no_matching_policy_default_deny(int requestID)
         {
             if (IsEnabled())
@@ -133,7 +126,7 @@ namespace TameMyCerts
                 WriteEvent(4203, requestID);
             }
         }
-        [Event(4204, Level = EventLevel.Verbose, Channel = EventChannel.Operational, Task = Tasks.YubikeyValidator, Keywords = EventKeywords.None)]
+        [Event(4204, Level = EventLevel.Verbose, Channel = EventChannel.Analytic, Task = Tasks.YubikeyValidator, Keywords = EventKeywords.None)]
         public void YKVal_4204_Matching_policy(string policy, int requestID)
         {
             if (IsEnabled())

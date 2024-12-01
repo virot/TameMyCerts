@@ -26,7 +26,7 @@ namespace TameMyCerts.Tests
         private readonly CertificateRequestPolicy _policy;
         private readonly YubikeyValidator _YKvalidator = new YubikeyValidator();
         private readonly CertificateContentValidator _CCvalidator = new CertificateContentValidator();
-        private readonly CertificateAuthorityConfiguration _caConfig;
+        private readonly CertificateAuthorityConfiguration _caConfig = null;
 
         private readonly ITestOutputHelper output;
 

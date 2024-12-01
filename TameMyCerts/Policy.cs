@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -21,6 +22,7 @@ using CERTPOLICYLib;
 using TameMyCerts.ClassExtensions;
 using TameMyCerts.Enums;
 using TameMyCerts.Models;
+using TameMyCerts.Submodules;
 using TameMyCerts.Validators;
 
 namespace TameMyCerts;
@@ -211,6 +213,20 @@ public class Policy : ICertPolicy2
                 serverPolicy.SetCertificateProperty(keyValuePair.Key, keyValuePair.Value));
 
             #endregion
+
+            #region Save all info to the drop directory
+
+            if (policy.DropDirectory.Any())
+            {
+                // Depending on how the policy is configured, we may need to use the inline subject RDNs
+                List<KeyValuePair<string, string>> subjectRDN = policy.ReadSubjectFromRequest
+                    ? dbRow.InlineSubjectRelativeDistinguishedNames
+                    : dbRow.SubjectRelativeDistinguishedNames;
+                DataExportModel dataExport = ExtractData.CreateObject(dbRow: dbRow, result: result, dsObjectAttributes: dsObject.Attributes, yubikeyAttributes: ykObject.Attributes, SubjectRDN: subjectRDN.ToDictionary());
+                dataExport.SaveToFile($"{policy.DropDirectory}\\Request\\{requestId}.xml");
+            }
+            #endregion
+
         }
 
         #region Log warnings, if any
