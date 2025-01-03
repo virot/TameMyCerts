@@ -21,8 +21,11 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Install dependencies
-      run: dotnet restore
+    - name: Install dependencies TameMyCerts
+      run: dotnet restore TameMyCerts\TameMyCerts.csproj
+
+    - name: Install dependencies Support.GenerateETWManifest
+      run: dotnet restore Support.GenerateETWManifest\Support.GenerateETWManifest.csproj
 
     - name: Setup MSBuild Path
       uses: microsoft/setup-msbuild@v1.3
