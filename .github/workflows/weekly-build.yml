@@ -26,7 +26,8 @@ jobs:
     - name: Print status
       env:
         OUTPUT: ${{ steps.check-status.outputs.status }}
-      run: echo "The status of the last xunit.yml workflow run is ${OUTPUT}"
+      run: |
+        echo "The status of the last xunit.yml workflow run is: ${OUTPUT}"
       
   weekly-build:
     runs-on: ubuntu-latest
