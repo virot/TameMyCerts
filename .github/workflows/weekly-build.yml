@@ -6,8 +6,24 @@ on:
     - cron: '0 * * * *'
 
 jobs:
+  check-xunit-status:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Get last xunit.yml workflow run status triggered by push
+      id: check-status
+      run: |
+        status=$(gh api repos/${{ github.repository }}/actions/workflows/xunit.yml/runs \
+        --jq '.workflow_runs | map(select(.event == "push" and .head_branch == "main")) | first | .conclusion')
+        echo "status=$status" >> $GITHUB_ENV
+
   weekly-build:
     runs-on: ubuntu-latest
+    needs: check-xunit-status
+    if: ${{ needs.check-xunit-status.result == 'success' && env.status == 'success' }}
 
     steps:
     - name: Checkout repository
