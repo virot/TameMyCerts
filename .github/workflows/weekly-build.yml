@@ -24,7 +24,9 @@ jobs:
         echo "status=$status" >> $GITHUB_ENV
 
     - name: Print status
-      run: echo "The status of the last xunit.yml workflow run is: ${{ steps.check-status.outputs.status }}"
+      env:
+        OUTPUT: ${{ steps.check-status.outputs.status }}
+      run: echo "The status of the last xunit.yml workflow run is ${OUTPUT}"
       
   weekly-build:
     runs-on: ubuntu-latest
