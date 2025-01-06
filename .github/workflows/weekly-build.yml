@@ -1,0 +1,39 @@
+name: Weekly Build
+
+on:
+  schedule:
+    # Runs every Monday at 00:00 UTC
+    - cron: '0/10 * * * *'
+
+jobs:
+  weekly-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Delete existing "weekly-build" release
+      run: |
+        existing_release=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        https://api.github.com/repos/${{ github.repository }}/releases/tags/weekly-build \
+        | jq -r '.id')
+        if [ "$existing_release" != "null" ]; then
+          curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/repos/${{ github.repository }}/releases/$existing_release
+        fi
+
+    - name: Create new "weekly-build" release
+      run: |
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        -d '{
+          "tag_name": "weekly-build",
+          "target_commitish": "main",
+          "name": "Weekly Build",
+          "body": "Auto-generated weekly build.",
+          "draft": false,
+          "prerelease": true
+        }' https://api.github.com/repos/${{ github.repository }}/releases
+
+    - name: Complete the weekly build process
+      run: echo "Weekly build completed!"
