@@ -23,6 +23,9 @@ jobs:
         --jq '.workflow_runs | map(select(.event == "push" and .head_branch == "main")) | first | .conclusion')
         echo "status=$status" >> $GITHUB_ENV
 
+    - name: Print status
+      run: echo "The status of the last xunit.yml workflow run is: ${{ steps.check-status.outputs.status }}"
+      
   weekly-build:
     runs-on: ubuntu-latest
     needs: check-xunit-status
