@@ -33,7 +33,7 @@ jobs:
         fi
 
     - name: Create new "weekly-build" release
-      if: ${{ steps.delete-release.outcome == 'success'
+      if: ${{ steps.delete-release.outcome == 'success' }}
       run: |
         current_date=$(date +'%Y-%m-%d')
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
