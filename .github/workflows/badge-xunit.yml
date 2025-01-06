@@ -3,6 +3,8 @@ name: XUnit tests
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -32,8 +34,5 @@ jobs:
     - name: Build TameMyCerts.Tests
       run: msbuild TameMyCerts.Tests\TameMyCerts.Tests.csproj -property:Configuration=debug
 
-    - name: Build ETW Manifest
-      run: msbuild Support.GenerateETWManifest\Support.GenerateETWManifest.csproj -property:Configuration=debug
-  
     - name: Run xunit tests
       run: dotnet test --no-build --verbosity minimal
