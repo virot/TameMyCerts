@@ -22,17 +22,14 @@ jobs:
         status=$(gh api repos/${GH_REPO}/actions/workflows/xunit.yml/runs \
         --jq '.workflow_runs | map(select(.event == "push" and .head_branch == "main")) | first | .conclusion')
         echo "status=$status" >> $GITHUB_ENV
-
-    - name: Print status
-      env:
-        OUTPUT: ${{ steps.check-status.outputs.status }}
-      run: |
-        echo "The status of the last xunit.yml workflow run is: ${OUTPUT}"
+        echo "::set-output status=$status"
+    outputs:
+      status: $status
       
   weekly-build:
     runs-on: ubuntu-latest
     needs: check-xunit-status
-    if: ${{ needs.check-xunit-status.result == 'success' && needs.check-xunit-status.check-status.outputs.status == 'success' }}
+    if: ${{ needs.check-xunit-status.result == 'success' && needs.check-xunit-status.outputs.status == 'success' }}
     
     steps:
     - name: Checkout repository
