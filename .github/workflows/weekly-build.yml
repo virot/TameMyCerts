@@ -3,7 +3,7 @@ name: Weekly Build
 on:
   schedule:
     # Runs every Monday at 00:00 UTC
-    - cron: '0/10 * * * *'
+    - cron: '0 * * * *'
 
 jobs:
   weekly-build:
