@@ -15,8 +15,11 @@ jobs:
 
     - name: Get last xunit.yml workflow run status triggered by push
       id: check-status
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
       run: |
-        status=$(gh api repos/${{ github.repository }}/actions/workflows/xunit.yml/runs \
+        status=$(gh api repos/${GH_REPO}/actions/workflows/xunit.yml/runs \
         --jq '.workflow_runs | map(select(.event == "push" and .head_branch == "main")) | first | .conclusion')
         echo "status=$status" >> $GITHUB_ENV
 
