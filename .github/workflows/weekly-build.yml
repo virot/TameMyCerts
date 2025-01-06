@@ -23,7 +23,7 @@ jobs:
   weekly-build:
     runs-on: ubuntu-latest
     needs: check-xunit-status
-    if: ${{ needs.check-xunit-status.result == 'success' && steps.check-status.outputs.status == 'success'
+    if: ${{ needs.check-xunit-status.result == 'success' && steps.check-status.outputs.status == 'success' }}
 
     steps:
     - name: Checkout repository
