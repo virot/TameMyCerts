@@ -7,15 +7,14 @@ on:
       - prereleased
 
 permissions:
-  contents: write
+  actions: write
 
 jobs:
   build:
     name: Build and upload module
     runs-on: ubuntu-latest
-
     env:
-      GH_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       upload_url: ${{ github.event.release.upload_url }}
       versiontag: ${{ github.event.release.tag_name }}
 
