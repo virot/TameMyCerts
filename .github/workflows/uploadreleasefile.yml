@@ -24,6 +24,7 @@ jobs:
       upload_url: ${{ github.event.inputs.upload_url }}
       zipfilename: ${{ github.event.inputs.zipfilename }}
       versiontag: ${{ github.event.inputs.versiontag }}
+      configuration: "release"
 
     steps:
 
@@ -41,22 +42,31 @@ jobs:
 
     - name: Install dependencies Support.GenerateETWManifest
       run: dotnet restore Support.GenerateETWManifest\Support.GenerateETWManifest.csproj
-
+      
     - name: Setup MSBuild Path
       uses: microsoft/setup-msbuild@v1.3
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
     - name: Build Debug
-      run: msbuild TameMyCerts\TameMyCerts.csproj -property:Configuration=release
+      run: msbuild TameMyCerts\TameMyCerts.csproj -property:Configuration=${{ env.configuration }} -p:OutDir=..\release
 
     - name: Build ETW Manifest
-      run: msbuild Support.GenerateETWManifest\Support.GenerateETWManifest.csproj -property:Configuration=release
+      run: msbuild Support.GenerateETWManifest\Support.GenerateETWManifest.csproj -property:Configuration=${{ env.configuration }} -p:OutDir=..\releaseETW
+
+    - name: Copy files
+      run: |
+        Copy-Item -Recurse -PassThru .\examples .\release
+        Copy-Item -Recurse -PassThru .\LICENSE .\release
+        Copy-Item -Recurse -PassThru .\README.md .\release
+        Copy-Item -PassThru .\releaseETW\TameMyCerts.Events.dll .\release
+        Copy-Item -PassThru .\releaseETW\TameMyCerts.Events.man .\release
+      shell: pwsh
 
     - name: Create ZIP file
       run: |
         Add-Type -AssemblyName 'System.IO.Compression.FileSystem'
-        [System.IO.Compression.ZipFile]::CreateFromDirectory("TameMyCerts\bin\release\net8.0-windows", "release.zip", [System.IO.Compression.CompressionLevel]::SmallestSize, $false)
+        [System.IO.Compression.ZipFile]::CreateFromDirectory("release", "release.zip", [System.IO.Compression.CompressionLevel]::SmallestSize, $false)
         Write-Host "ZIP file created successfully at $zipFilePath"
       shell: pwsh
 
