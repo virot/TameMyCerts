@@ -82,7 +82,7 @@ jobs:
       run: |
         curl -X POST -H "Accept: application/vnd.github.v3+json" \
         -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-        https://api.github.com/repos/${{ github.repository }}/actions/workflows/target-workflow.yml/dispatches \
+        https://api.github.com/repos/${{ github.repository }}/actions/workflows/uploadreleasefile.yml/dispatches \
         -d '{"ref":"main","inputs":{"input1":"${{ env.upload_url }}","zipfilename":"${{ env.zipfilename }}","versiontag":"weekly-build"}}'
       env:
         GH_TOKEN: ${{ github.token }}
