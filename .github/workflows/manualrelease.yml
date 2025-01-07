@@ -15,6 +15,7 @@ jobs:
     runs-on: windows-latest
 
     env:
+      GH_TOKEN: ${{ github.token }}
       upload_url: ${{ github.event.release.upload_url }}
       versiontag: ${{ github.event.release.tag_name }}
 
