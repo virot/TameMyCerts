@@ -22,7 +22,7 @@ jobs:
 
     - name: Delete existing "weekly-build" release
       id: delete-release
-      if: ${{ env.status == 'success'
+      if: ${{ env.status == 'success' }}
       run: |
         existing_release=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
         https://api.github.com/repos/${{ github.repository }}/releases/tags/weekly-build \
