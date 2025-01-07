@@ -60,6 +60,8 @@ New-Variable -Option Constant -Name FileList -Value @(
     "TameMyCerts.comhost.dll",
     "TameMyCerts.deps.json",
     "TameMyCerts.dll",
+    "TameMyCerts.Events.dll",
+    "TameMyCerts.Events.man",
     "TameMyCerts.runtimeconfig.json",
     "runtimes\win\lib\net8.0\System.Diagnostics.EventLog.dll",
     "runtimes\win\lib\net8.0\System.Diagnostics.EventLog.Messages.dll",
