@@ -3,7 +3,7 @@ name: Trigger weekly build
 on:
   schedule:
     # Runs every Monday
-    - cron: '15 1 * * 1'
+    - cron: '30 1 * * 2'
 
 jobs:
   Triggerweeklybuild:
@@ -20,9 +20,23 @@ jobs:
         --jq '.workflow_runs | map(select(.event == "push" and .head_branch == "main")) | first | .conclusion')
         echo "status=$status" >> $GITHUB_ENV
 
+    - name: Check if weekly-build release exists
+      id: check-release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        existing_release=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        https://api.github.com/repos/${{ github.repository }}/releases/tags/weekly-build \
+        | jq -r '.id')
+        if [ "$existing_release" != "null" ]; then
+          echo "release_exists=true" >> $GITHUB_ENV
+        else
+          echo "release_exists=false" >> $GITHUB_ENV
+        fi
+        
     - name: Delete existing "weekly-build" release
       id: delete-release
-      if: ${{ env.status == 'success' }}
+      if: ${{ env.status == 'success' && env.release_exists == 'true' }} 
       run: |
         existing_release=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
         https://api.github.com/repos/${{ github.repository }}/releases/tags/weekly-build \
@@ -33,7 +47,7 @@ jobs:
         fi
 
     - name: Create new "weekly-build" release
-      if: ${{ steps.delete-release.outcome == 'success' }}
+      if: ${{ steps.delete-release.outcome == 'success' || env.release_exists == 'false' }}
       run: |
         current_date=$(date +'%Y-%m-%d')
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
