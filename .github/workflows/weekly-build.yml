@@ -4,7 +4,8 @@ on:
   schedule:
     # Runs every Monday
     - cron: '30 1 * * 2'
-
+  workflow_dispatch:  
+  
 jobs:
   Triggerweeklybuild:
     runs-on: ubuntu-latest
