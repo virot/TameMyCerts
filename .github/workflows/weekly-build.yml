@@ -71,6 +71,7 @@ jobs:
         }' https://api.github.com/repos/${{ github.repository }}/releases)
         upload_url=$(echo $status | jq -r '.upload_url')
         echo "upload_url=$upload_url" >> $GITHUB_ENV
+        echo $status
 
     - name: Set Asset Name
       id: set-asset-name
