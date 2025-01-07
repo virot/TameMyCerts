@@ -47,6 +47,13 @@ jobs:
           https://api.github.com/repos/${{ github.repository }}/releases/$existing_release
         fi
 
+    - name: Delete existing "weekly-build" tag
+      id: delete-tag
+      if: ${{ steps.delete-release.outcome == 'success' }}
+      run: |
+        curl -s -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        https://api.github.com/repos/${{ github.repository }}/git/refs/tags/weekly-build
+
     - name: Create new "weekly-build" release
       if: ${{ steps.delete-release.outcome == 'success' || env.release_exists == 'false' }}
       run: |
