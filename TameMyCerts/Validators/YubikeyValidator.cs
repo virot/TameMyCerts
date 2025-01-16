@@ -185,6 +185,13 @@ namespace TameMyCerts.Validators
             }
             #endregion
 
+            #region Slot
+            if (policy.Slot.Any() && !policy.Slot.Contains(yubikey.Slot))
+            {
+                return false;
+            }
+            #endregion
+
             if (policy.KeyAlgorithmFamilies.Any() && ! policy.KeyAlgorithmFamilies.Contains(yubikey.keyAlgorithm))
             {
                 return false;
