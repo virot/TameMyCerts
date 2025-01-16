@@ -50,6 +50,9 @@ namespace TameMyCerts.Models
         [XmlArray(ElementName = "Edition")]
         [XmlArrayItem(ElementName = "string")]
         public List<YubikeyEdition> Edition { get; set; } = new List<YubikeyEdition>();
+        [XmlArray(ElementName = "Slot")]
+        [XmlArrayItem(ElementName = "string")]
+        public List<string> Slot { get; set; } = new List<string>();
         [XmlArray(ElementName = "KeyAlgorithm")]
         [XmlArrayItem(ElementName = "string")]
         public List<KeyAlgorithmFamily> KeyAlgorithmFamilies { get; set; } = new List<KeyAlgorithmFamily>();

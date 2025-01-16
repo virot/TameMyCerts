@@ -84,7 +84,7 @@ public class CertificateRequestPolicy
     [XmlElement(ElementName = "DirectoryServicesMapping")]
     public DirectoryServicesMapping DirectoryServicesMapping { get; set; }
 
-    [XmlElement(ElementName = "YubikeyPolicy")]
+    [XmlArray(ElementName = "YubikeyPolicies")]
     public List<YubikeyPolicy> YubikeyPolicy { get; set; }
 
     [XmlElement(ElementName = "SupplementDnsNames")]
