@@ -740,5 +740,41 @@ namespace TameMyCerts.Tests
 
             output.WriteLine(policy.SaveToString());
         }
+        [Fact]
+        public void Validate_Slot_with_0x_10021()
+        {
+            CertificateDatabaseRow dbRow = new CertificateDatabaseRow(_yubikey_valid_5_4_3_Once_Never_UsbAKeychain_9a_Normal_RSA_2048_CSR, CertCli.CR_IN_PKCS10, null, 10020);
+            CertificateRequestPolicy policy = _policy;
+            var result = new CertificateRequestValidationResult(dbRow);
+
+            // Required slot 0x9a, which needs to match 9a
+            policy = _policy;
+            policy.YubikeyPolicy[0].Slot = new List<string> { "0x9a" };
+            result = new CertificateRequestValidationResult(dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, dbRow, out var yubikeyInfo);
+            result = _YKvalidator.VerifyRequest(result, policy, yubikeyInfo, dbRow.RequestID);
+            Assert.False(result.DeniedForIssuance);
+            PrintResult(result);
+
+            output.WriteLine(policy.SaveToString());
+        }
+        [Fact]
+        public void Validate_Slot_incorrect_with_0x_10022()
+        {
+            CertificateDatabaseRow dbRow = new CertificateDatabaseRow(_yubikey_valid_5_4_3_Once_Never_UsbAKeychain_9a_Normal_RSA_2048_CSR, CertCli.CR_IN_PKCS10, null, 10020);
+            CertificateRequestPolicy policy = _policy;
+            var result = new CertificateRequestValidationResult(dbRow);
+
+            // Should not match the csr which is 9A
+            policy = _policy;
+            policy.YubikeyPolicy[0].Slot = new List<string> { "0x9e" };
+            result = new CertificateRequestValidationResult(dbRow);
+            result = _YKvalidator.ExtractAttestion(result, _policy, dbRow, out var yubikeyInfo);
+            result = _YKvalidator.VerifyRequest(result, policy, yubikeyInfo, dbRow.RequestID);
+            Assert.True(result.DeniedForIssuance);
+            PrintResult(result);
+
+            output.WriteLine(policy.SaveToString());
+        }
     }
 }
