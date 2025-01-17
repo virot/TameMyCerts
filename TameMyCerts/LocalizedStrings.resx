@@ -459,4 +459,7 @@ with the content:
   <data name="DirVal_TokenGroupNames_Failed" xml:space="preserve">
     <value>Unable to determine the msds-TokenGroupNames attribute for {0}. Note that this attribute is only available on Windows Server 2016 and newer Domain Controllers.</value>
   </data>
+  <data name="event_TMC_94_XML_Parsing_error" xml:space="preserve">
+    <value>Unable to parse '{0}', {1}.</value>
+  </data>
 </root>

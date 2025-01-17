@@ -738,7 +738,7 @@ namespace TameMyCerts.Tests
             Assert.False(result.DeniedForIssuance);
             PrintResult(result);
 
-
+            output.WriteLine(policy.SaveToString());
         }
     }
 }

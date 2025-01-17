@@ -438,6 +438,15 @@ namespace TameMyCerts {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to parse &apos;{0}&apos;, {1}..
+        /// </summary>
+        internal static string event_TMC_94_XML_Parsing_error {
+            get {
+                return ResourceManager.GetString("event_TMC_94_XML_Parsing_error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The request {1}  was rejected due to policy: \r\n{0}.
         /// </summary>
         internal static string event_YKVal_4201_Denied_by_Policy {
