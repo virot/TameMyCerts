@@ -103,21 +103,16 @@ public class XMLPolicyTests
 
         string sampleXML = @"<CertificateRequestPolicy xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
   xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-<YubikeyPolicies>
-  <YubikeyPolicy>
+  <YubiKeyPolicies>
+  <YubiKeyPolicy>
     <Action>Allow</Action>
-    <PinPolicy>
-      <string>Always</string>
-      <string>Once</string>
-     </PinPolicy>
-     <TouchPolicy>
-       <string>Always</string>
-       <string>Cached</string>
-     </TouchPolicy>
-  </YubikeyPolicy>
-</YubikeyPolicies>
-
+      <Slot>
+        <string>9A</string>
+      </Slot>
+  </YubiKeyPolicy>
+  </YubiKeyPolicies>
 </CertificateRequestPolicy>
+
 ";
         File.WriteAllText(filename, sampleXML);
         _listener.ClearEvents();
