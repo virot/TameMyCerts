@@ -26,7 +26,7 @@ using System.Runtime.CompilerServices;
 namespace TameMyCerts.Models
 {
     // Must be public due to XML serialization, otherwise 0x80131509 / System.InvalidOperationException
-    [XmlRoot(ElementName = "YubikeyPolicy")]
+    [XmlRoot(ElementName = "YubiKeyPolicy")]
     public class YubikeyPolicy
     {
         [XmlElement(ElementName = "Action")]

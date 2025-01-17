@@ -420,7 +420,7 @@ namespace TameMyCerts {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to XML policy unknown Element: {0} at line {1}, position {2}.
+        ///   Looks up a localized string similar to XML policy unknown Element: {0} at line {1}, position {2}, Elements are case sensitive..
         /// </summary>
         internal static string event_TMC_92_Policy_Unknown_XML_Element {
             get {

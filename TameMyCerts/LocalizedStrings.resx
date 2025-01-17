@@ -436,7 +436,7 @@ with the content:
 {1} </value>
   </data>
   <data name="event_TMC_92_Policy_Unknown_XML_Element" xml:space="preserve">
-    <value>XML policy unknown Element: {0} at line {1}, position {2}</value>
+    <value>XML policy unknown Element: {0} at line {1}, position {2}, Elements are case sensitive.</value>
   </data>
   <data name="event_TMC_93_Policy_Unknown_XML_Attribute" xml:space="preserve">
     <value>Unknown Attribute: {0}='{1}' at line {2}, position {3}</value>
